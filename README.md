@@ -48,7 +48,7 @@ No dependencies. C++17 and CMake:
 ```bash
 cmake -S . -B build
 cmake --build build
-./build/lineuq_tests
+./build/lineuq_tests           # 44 checks
 ```
 
 `stb_image.h` is vendored under `third_party/` and is used only by the example
@@ -101,6 +101,44 @@ weighted refit of each axis — so swapping `weights` between unit, length and
 measured uncertainty is a controlled comparison. `examples/estimate_manhattan.cpp`
 runs all three on the same segments and prints the three answers.
 
+## Python
+
+```bash
+pip install .        # needs a C++17 compiler; on Windows that means MSVC
+```
+
+```python
+import numpy as np, lineuq
+
+st = lineuq.measure(image, segments)   # image (H, W) uint8, segments (N, 4)
+
+st.n, st.lambda_max, st.lambda_min     # numpy columns, one entry per segment
+st.sigma2                              # direction variance of each fit
+st.fallback                            # which segments could not be measured
+w = st.sqrt_fisher()                   # the weight, (N,) float64
+
+frame = lineuq.Frame(image)            # reuse across many segment sets
+st = frame.measure(segments)
+
+m = lineuq.estimate_manhattan(segments, camera=(fx, fy, cx, cy), weights=w)
+m.axes                                 # (3, 3): three orthogonal directions
+```
+
+The binding is array-oriented: crossing the boundary per segment would cost more
+than the measurement does. Everything takes and returns numpy arrays and the GIL
+is released around the work.
+
+**If your detector already accumulates its own moments, you do not need an image
+at all.**
+
+```python
+w = lineuq.sqrt_fisher(n, lambda_max, lambda_min)      # or Stats.from_moments(...)
+```
+
+This is deliberately the same code path the measured route uses, so a native
+supplier and the posterior pass produce interchangeable weights. It is the
+concrete form of the interface this library argues for.
+
 ## Examples
 
 ```bash
@@ -130,14 +168,16 @@ detector produced the endpoints it is given.
 
 ## Status
 
-v0.1. The measurement and the estimator are here; the reproduction harness for
-the paper's tables is not yet, and will follow.
+v0.1. The measurement, the estimator and the Python bindings are here; the
+reproduction harness for the paper's tables is not yet, and will follow.
 
 The measurement was verified against the reference implementation the paper's
-results were produced with, on 380 real segments of one EuRoC frame: identical
-accepted-section counts on every segment, an identical set of unmeasurable
-segments, and eigenvalues agreeing to 2·10⁻⁸ relative (103 of 380 bit-identical,
-the remainder differing only by floating-point accumulation order).
+results were produced with, on 380 real segments of one EuRoC frame. The MSVC
+build — the one the Python extension uses — reproduces it **bit for bit on all
+380 segments**. A GCC `-O3` build of the same source agrees to 2·10⁻⁸ relative
+with 103 of 380 bit-identical, so what is left is the compiler's floating-point
+choices and not the algorithm. Accepted-section counts and the set of
+unmeasurable segments match exactly under both.
 
 Four ways of weighting the cross-sections *within* a segment were tried during
 the research and none of them helped, so they are deliberately not exposed here.

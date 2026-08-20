@@ -10,3 +10,11 @@ build*/
 .idea/
 .DS_Store
 Thumbs.db
+
+# python build
+__pycache__/
+*.pyd
+*.so
+*.egg-info/
+dist/
+.pytest_cache/
