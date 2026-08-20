@@ -1,0 +1,12 @@
+# build output
+build*/
+*.o
+*.obj
+*.a
+*.exe
+
+# editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

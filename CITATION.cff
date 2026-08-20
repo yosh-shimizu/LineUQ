@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use LineUQ, please cite it as below."
+title: "LineUQ: measured line-segment localisation uncertainty for geometric estimation"
+version: 0.1.0
+license: MIT
+repository-code: "https://github.com/yosh-shimizu/LineUQ"
+authors:
+  - family-names: Shimizu
+    given-names: Yoshiyasu
+    email: yoshiyasu.shimizu.research@gmail.com
+type: software
+keywords:
+  - line segment detection
+  - uncertainty quantification
+  - vanishing point
+  - Manhattan world
+  - geometric vision
